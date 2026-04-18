@@ -180,6 +180,7 @@ class AgentTeamHarness:
         m = tf.find_member(agent_name)
         if m is None:
             return
+        prior_state = m.state
         m.state = new_state  # type: ignore[assignment]
         m.last_heartbeat = _now_iso()
         try:
@@ -189,14 +190,19 @@ class AgentTeamHarness:
             tf = registry.load_team_file(self.workspace, self.team_name)
             m = tf.find_member(agent_name)
             if m is not None:
+                prior_state = m.state
                 m.state = new_state  # type: ignore[assignment]
                 m.last_heartbeat = _now_iso()
                 registry.save_team_file(self.workspace, tf, expected_version=tf.version)
-        mailbox_mod.append_log(
-            self.workspace,
-            self.team_name,
-            {"kind": log_kind, "agent_name": agent_name},
-        )
+        # WHY: only log on actual state change. Heartbeat refresh still happens
+        # above on every tick so orphan detection stays accurate, but logging
+        # idle_enter every 0.5s tick floods logs.jsonl and REPL rendering.
+        if prior_state != new_state:
+            mailbox_mod.append_log(
+                self.workspace,
+                self.team_name,
+                {"kind": log_kind, "agent_name": agent_name},
+            )
 
     def _run_once(self, rt: _MemberRuntime) -> None:
         token = set_current_team_context(rt.ctx)
@@ -214,8 +220,15 @@ class AgentTeamHarness:
             self._transition(rt.member.agent_name, "alive", log_kind="resume")
             # Compose prompt from unread entries.
             prompt = "\n".join(f"[{e.kind}] {e.sender}: {e.body}" for e in unread)
+            # WHY: thread_id=agent_id lets agents with a LangGraph checkpointer
+            # carry conversational state across ticks. Agents without a
+            # checkpointer simply ignore the config.
+            invoke_config = {"configurable": {"thread_id": rt.ctx.agent_id}}
             try:
-                rt.agent.invoke({"messages": [{"role": "user", "content": prompt}]})
+                rt.agent.invoke(
+                    {"messages": [{"role": "user", "content": prompt}]},
+                    config=invoke_config,
+                )
             except Exception as exc:  # WHY: surface loudly, but keep loop running.
                 mailbox_mod.append_log(
                     self.workspace,

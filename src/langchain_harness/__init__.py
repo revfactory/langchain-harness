@@ -8,6 +8,7 @@ Single execution path:
 from __future__ import annotations
 
 from .config import MODEL_ID
+from .repl import ReplSession, run_repl
 from .team import (
     AgentTeamHarness,
     TEAM_TOOLS,
@@ -23,5 +24,7 @@ __all__ = [
     "current_team_context",
     "team_middleware_stack",
     "MODEL_ID",
+    "ReplSession",
+    "run_repl",
 ]
-__version__ = "0.3.0"
+__version__ = "0.4.0"
