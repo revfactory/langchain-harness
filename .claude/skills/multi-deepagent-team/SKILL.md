@@ -1,31 +1,31 @@
 ---
 name: multi-deepagent-team
-description: "여러 DeepAgent 인스턴스를 하나의 팀으로 묶어 메일박스 기반 메시지와 공유 태스크 큐로 자율 협업시키는 런타임 설계·구현·운영 가이드. 'Multi-DeepAgent', '멀티 에이전트', 'AgentTeam', '팀 런타임', '팀 빌드', '팀 스폰', '팀 해체', '팀 추가', '팀 재구성', 'teammate', 'team lead', 'mailbox', 'send_message', 'broadcast', 'team_task', 'shared task list', '팀 컨텍스트', '팀 모드로 실행', '여러 에이전트 협업', 'supervisor 패턴', '자율 협업 에이전트', '생성-검증 팀', 'AgentTeamHarness', '_workspace/teams' 등 다수 DeepAgent가 **한 팀으로 함께 실행**되는 과제에 반드시 이 스킬을 사용한다. 단, 단일 DeepAgent(create()) 또는 LangGraph Supervisor(meta/) 경로만 다루는 경우 이 스킬은 쓰지 않는다."
+description: "여러 DeepAgent 인스턴스를 하나의 팀으로 묶어 메일박스 기반 메시지와 공유 태스크 큐로 자율 협업시키는 **유일한** 런타임 설계·구현·운영 가이드. 'Multi-DeepAgent', '멀티 에이전트', 'AgentTeam', '팀 런타임', '팀 빌드', '팀 스폰', '팀 해체', '팀 추가', '팀 재구성', 'teammate', 'team lead', 'mailbox', 'send_message', 'broadcast', 'team_task', 'shared task list', '팀 컨텍스트', '팀 모드로 실행', '여러 에이전트 협업', 'supervisor 패턴', '자율 협업 에이전트', '생성-검증 팀', 'AgentTeamHarness', '_workspace/teams' 등 팀 런타임 관련 모든 요청에 반드시 이 스킬을 사용한다."
 ---
 
 # Multi-DeepAgent Team Runtime
 
-여러 DeepAgent 인스턴스가 **하나의 팀**으로 묶여 메일박스 · 공유 태스크 큐 · 팀 컨텍스트를 공유하며 자율 조율하도록 만든 런타임. 단일 에이전트 경로(`create()`)와 LangGraph 기반 Meta-Supervisor(`meta/`)와는 독립된 세 번째 경로다.
+여러 DeepAgent 인스턴스가 **하나의 팀**으로 묶여 메일박스 · 공유 태스크 큐 · 팀 컨텍스트를 공유하며 자율 조율하도록 만든 런타임. 이 프로젝트에서 팀 런타임이 **유일한 실행 경로**다.
 
 ## 1. 언제 이 스킬을 쓰는가 / 쓰지 않는가
 
 ### 쓴다
-- 사용자가 "멀티 DeepAgent", "에이전트 팀", "여러 에이전트가 협업", "메일박스로 통신" 등을 명시
+- 모든 팀 설계·구현·운영 요청 (팀 런타임이 유일 경로이므로 대부분 해당)
 - 하나의 과제를 여러 역할(예: 생성자 + 검증자, 리드 + 러너)이 **동시 실행**하며 **서로 메시지**를 주고받아야 할 때
 - 팀원 수·구성이 **런타임에 변동**되어야 할 때 (lead가 러너를 추가 스폰)
 - 팀 상태(메일박스, 태스크 큐)가 **파일 기반으로 영속화**되어 세션·프로세스 경계를 넘어 조회되어야 할 때
 - `AgentTeamHarness`, `team_create`, `spawn_teammate`, `send_message`, `team_task_create` 등 팀 프리미티브 등장 시
 
 ### 쓰지 않는다
-- **단일** DeepAgent로 충분한 과제 → `deepagents-bootstrap` + 단순 `create()`
-- LangGraph `Supervisor` 기반 파이프라인(이미 `meta/`에 있음) — 고정 토폴로지, 메일박스 없음
-- SendMessage 없이 순차 파이프 호출만 필요 → `subagents=[...]` 파라미터로 충분
+- 상위 메타 워크플로우(Phase 오케스트레이션 자체) → `harness-engineering`가 먼저 트리거
+- 프로젝트 스캐폴드(pyproject, 패키지 구조) → `deepagents-bootstrap`
+- 미들웨어 단일 패턴 설명 → `middleware-patterns`
 
 ### 경계 규칙
 | 요청 표현 | 써야 할 스킬 |
 |----------|-------------|
-| "팀으로 협업시켜줘" · "팀 lead가 teammate 스폰" · "메일박스" | **multi-deepagent-team** |
-| "새 하네스 만들어줘" · "미들웨어 추가" (팀 무관) | harness-engineering |
+| "팀으로 협업시켜줘" · "팀 lead가 teammate 스폰" · "메일박스" · "팀 런타임 설계" | **multi-deepagent-team** |
+| "새 하네스 만들어줘" · "하네스 진화" · 전체 워크플로우 | harness-engineering |
 | "프로젝트 초기화" · "pyproject 스캐폴드" | deepagents-bootstrap |
 | "루프 방지 미들웨어" · "LocalContext 주입" | middleware-patterns |
 

@@ -1,15 +1,27 @@
-"""Runtime-configurable deep-agent harness on LangChain + Anthropic Claude Opus 4.7.
+"""Multi-DeepAgent Team runtime on LangChain + Anthropic Claude Opus 4.7.
 
-Two entrypoints:
-- `create(HarnessConfig(...))` — single deep-agent (simple tasks).
-- `MetaHarness().run(task)` — Supervisor-routed multi-role team (complex tasks).
+Single execution path:
+- `AgentTeamHarness(team_name=...).start()` — multiple DeepAgent instances
+  coordinating via file-backed mailbox and shared task queue.
 """
 
 from __future__ import annotations
 
-from .agent import HarnessConfig, create
 from .config import MODEL_ID
-from .meta import MetaHarness, run_meta_harness
+from .team import (
+    AgentTeamHarness,
+    TEAM_TOOLS,
+    TeamContext,
+    current_team_context,
+    team_middleware_stack,
+)
 
-__all__ = ["HarnessConfig", "create", "MODEL_ID", "MetaHarness", "run_meta_harness"]
-__version__ = "0.2.0"
+__all__ = [
+    "AgentTeamHarness",
+    "TEAM_TOOLS",
+    "TeamContext",
+    "current_team_context",
+    "team_middleware_stack",
+    "MODEL_ID",
+]
+__version__ = "0.3.0"
