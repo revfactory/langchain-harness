@@ -5,13 +5,31 @@ Deep-agent의 장기 기억 파일. `HarnessConfig(agents_md=Path("AGENTS.md"))`
 ## 프로젝트 개요
 
 - **목적**: LangChain `deepagents` + Anthropic ADK(Claude Agent SDK) + Claude Opus 4.7로 구축한 런타임 구성 가능 하네스 엔진
-- **아키텍처**: `HarnessConfig → create() → (model, tools, subagents, middleware) → deep-agent`
+- **두 엔트리포인트**:
+  - `HarnessConfig → create()` — 단일 deep-agent (단순 과제)
+  - `MetaHarness().run(task)` — LangGraph Supervisor가 라우팅하는 6역할 팀 (복잡 과제)
 - **핵심 구성요소**:
   - `src/langchain_harness/config.py` — 모델 ID, 기본 시스템 프롬프트
-  - `src/langchain_harness/agent.py` — 팩토리 `create()`
+  - `src/langchain_harness/agent.py` — 단일 에이전트 팩토리 `create()`
   - `src/langchain_harness/middleware.py` — 5종 미들웨어
   - `src/langchain_harness/tools.py` — `read_file`, `write_file`, `bash`
-  - `src/langchain_harness/cli.py` — `langchain-harness run "..."`
+  - `src/langchain_harness/meta/` — 메타 하네스 (schemas, roles, analyzer, composer, orchestrator, memory, evolution)
+  - `src/langchain_harness/cli.py` — `langchain-harness run "..."` · `langchain-harness meta run "..."`
+
+## Meta-Harness 역할 (순수 LangChain)
+
+`meta/roles.py`에 정의된 6개 역할이 Supervisor-routed StateGraph로 협업한다:
+
+| 역할 | 책임 | 허용 도구 |
+|------|------|----------|
+| architect | 스펙·실패 모드·토폴로지 정의 | read, write |
+| engineer | 스펙 → 코드/커맨드/파일 | read, write, bash |
+| curator | AGENTS.md 장기 기억 관리 | read, write |
+| evaluator | trace 분류 + 개선 카드 | read, write |
+| qa | 경계면 cross-read 검증 | read, write, bash |
+| synthesizer | 최종 사용자 답 통합 | read |
+
+Supervisor LLM은 TaskSpec + 최근 메시지를 보고 다음 actor를 결정하거나 `FINISH`를 반환한다.
 
 ## 코딩 컨벤션
 
@@ -52,3 +70,4 @@ Deep-agent의 장기 기억 파일. `HarnessConfig(agents_md=Path("AGENTS.md"))`
 | 날짜 | 변경 | 이유 |
 |------|------|------|
 | 2026-04-18 | 초기 작성 | 하네스 구성 시 |
+| 2026-04-18 | Meta-Harness 역할 섹션 추가, 두 엔트리포인트 구분 | 순수 LangChain 메타 하네스 도입 |

@@ -29,3 +29,4 @@ Claude Opus 4.7 + LangChain `deepagents` + Anthropic ADK로 런타임 구성 가
 | 날짜 | 변경 내용 | 대상 | 사유 |
 |------|----------|------|------|
 | 2026-04-18 | 초기 구성 (에이전트 5, 스킬 6, Python 스캐폴드) | 전체 | 하네스 엔진 프로젝트 출범 |
+| 2026-04-18 | Meta-harness 레이어 추가 (LangGraph Supervisor + 6개 역할) | src/langchain_harness/meta/* | Claude Code 없이 순수 LangChain만으로 메타 하네스가 실행되도록 |
