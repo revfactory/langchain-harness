@@ -21,6 +21,8 @@ class HarnessConfig:
     extra_tools: Sequence[Any] = field(default_factory=tuple)
     checklist: Sequence[str] = field(default_factory=tuple)
     agents_md: Path | None = None
+    # WHY: optional ambient team context — lazy string to avoid circular import.
+    team_context: "Any | None" = None
 
 
 def build_model(cfg: HarnessConfig) -> ChatAnthropic:

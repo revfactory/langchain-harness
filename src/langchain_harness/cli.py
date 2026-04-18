@@ -9,10 +9,12 @@ from dotenv import load_dotenv
 from .agent import HarnessConfig, create
 from .config import DEFAULT_SYSTEM_PROMPT, MODEL_ID, WORKSPACE_DIR
 from .meta.cli import meta_app
+from .team.cli import team_app
 
 load_dotenv()
 app = typer.Typer(add_completion=False, help="LangChain deep-agent harness CLI (Claude Opus 4.7).")
 app.add_typer(meta_app, name="meta", help="Meta-harness (multi-role Supervisor team).")
+app.add_typer(team_app, name="team", help="Multi-DeepAgent team runtime.")
 
 
 @app.command()

@@ -9,5 +9,6 @@ __pycache__/
 dist/
 build/
 *.egg-info/
-_workspace/runs/
-.DS_Store
+_workspace/
+.qa_tmp/
+

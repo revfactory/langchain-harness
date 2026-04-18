@@ -13,9 +13,9 @@ Claude Opus 4.7 + LangChain `deepagents` + Anthropic ADK로 런타임 구성 가
 - "하네스", "딥에이전트", "에이전트 시스템", "하네스 고도화", "재실행", "업데이트", "보완" 등
 - 단순 Python 문법 질문은 직접 응답 가능 (스킬 우회).
 
-**핵심 구성 (에이전트 5 · 스킬 6):**
-- 에이전트: `harness-architect`, `deepagent-engineer`, `skill-curator`, `harness-evaluator`, `integration-qa`
-- 스킬: `harness-engineering`(오케스트레이터), `deepagents-bootstrap`, `middleware-patterns`, `langchain-opus`, `trace-eval-loop`, `skill-bundling`
+**핵심 구성 (에이전트 7 · 스킬 7):**
+- 에이전트: `harness-architect`, `team-runtime-architect`, `deepagent-engineer`, `team-messaging-engineer`, `skill-curator`, `harness-evaluator`, `integration-qa`
+- 스킬: `harness-engineering`(오케스트레이터), `multi-deepagent-team`, `deepagents-bootstrap`, `middleware-patterns`, `langchain-opus`, `trace-eval-loop`, `skill-bundling`
 
 **모델 ID 규약:** 코드에서 모델을 지정할 때 반드시 `claude-opus-4-7`. 다른 ID 사용 시 boundary QA가 P0로 실패 처리한다.
 
@@ -30,3 +30,12 @@ Claude Opus 4.7 + LangChain `deepagents` + Anthropic ADK로 런타임 구성 가
 |------|----------|------|------|
 | 2026-04-18 | 초기 구성 (에이전트 5, 스킬 6, Python 스캐폴드) | 전체 | 하네스 엔진 프로젝트 출범 |
 | 2026-04-18 | Meta-harness 레이어 추가 (LangGraph Supervisor + 6개 역할) | src/langchain_harness/meta/* | Claude Code 없이 순수 LangChain만으로 메타 하네스가 실행되도록 |
+| 2026-04-18 | Multi-DeepAgent Team 런타임 추가 (mailbox + 공유 태스크 + 11 팀 도구 + AgentTeamHarness). `team-runtime-architect`, `team-messaging-engineer` 에이전트 2종 + `multi-deepagent-team` 스킬 등재. `harness-engineering` 오케스트레이터에 Phase 2B(팀 런타임 브랜치) 분기 추가 | src/langchain_harness/team/*, .claude/agents/team-*.md, .claude/skills/multi-deepagent-team/*, .claude/skills/harness-engineering/SKILL.md | 다수 DeepAgent 인스턴스가 파일 기반 메시지·태스크 큐로 자율 협업하는 제3 실행 경로 확보 |
+| 2026-04-18 | QA P1 2건 fix: (P1-1) `multi-deepagent-team/references/protocol.md`를 types.MailboxEntry 실 스키마와 재동기화. (P1-2) `TeamStatusArgs`에 `heartbeat_ttl_sec` 필드 추가하여 orphan 판정 TTL의 단일 진실원천 확보 | .claude/skills/multi-deepagent-team/references/protocol.md, src/langchain_harness/team/tools.py | QA boundary cross-read에서 스펙 drift 2건 탐지 — follow-up 즉시 반영 |
+
+## Follow-up (QA P2, 다음 iteration)
+
+- P2-1: `HarnessConfig.team_context` (`src/langchain_harness/agent.py:25`) 선언만 존재, `_collect_middleware/_collect_tools`에서 미소비 → placeholder를 실제 분기로 연결 필요
+- P2-2: `multi-deepagent-team/SKILL.md §8` 및 `references/recipes.md`의 `AgentTeamHarness.create()`, `TeammateSpec`, `run_until_*` 등 API가 실제 구현과 drift → recipes 업데이트 필요
+- P2-3: `tools.broadcast_message`가 `mailbox/_broadcast.jsonl`에 기록되지 않음 → `append_entry(recipient='*')` 분기 추가 필요 (감사 트레일 보강)
+- P2-4: `mailbox.sweep_expired` 구현은 있으나 호출 스케줄 없음 → `InboxPollMiddleware` 또는 `AgentTeamHarness.tick()` 에 주기적 호출 삽입 필요
